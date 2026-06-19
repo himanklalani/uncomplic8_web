@@ -41,7 +41,7 @@ export default function Home() {
           cardHeading="Performance & SEO."
           cardDescription={<><span className="text-white font-semibold">Uncomplic8 Tech</span> delivers high-performance digital solutions with structured precision, beautiful animations, and scalable architectures.</>}
           metricValue={100}
-          metricLabel="Lighthouse Score"
+          metricLabel="Audit Score"
           ctaHeading="Start your project."
           ctaDescription="Let's collaborate to build an extraordinary digital presence that stands out."
         />

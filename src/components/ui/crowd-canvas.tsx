@@ -401,14 +401,7 @@ export const Skiper39 = () => {
     >
       {/* ── 1. CTA headline ── */}
       <div className="flex flex-col items-center px-4 md:px-6 pt-8 md:pt-12 pb-8 md:pb-12 text-center">
-        {/* Label + descender line */}
-        <div className="relative mb-6 md:mb-10 flex flex-col items-center gap-2">
-          <span className="text-[10px] uppercase tracking-[0.35em] opacity-40">Canvas</span>
-          <span
-            className="block w-px"
-            style={{ height: 32, background: "linear-gradient(to bottom, var(--foreground), transparent)" }}
-          />
-        </div>
+        
 
         <span
           className="mb-5 inline-block text-[10px] font-semibold uppercase tracking-[0.35em]"
