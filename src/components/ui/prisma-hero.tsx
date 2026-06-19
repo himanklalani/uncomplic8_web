@@ -157,6 +157,18 @@ export const PrismaHero = () => {
             </div>
           </div>
 
+          {/* ── SCROLL INDICATOR ── */}
+          <div
+            ref={indRef}
+            className="absolute bottom-32 md:bottom-40 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3 text-white/50 uppercase tracking-[0.2em] mix-blend-difference"
+            style={{ fontSize: "0.6rem" }}
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 animate-bounce">
+              <ArrowDown className="h-4 w-4" />
+            </span>
+            Scroll
+          </div>
+
           {/* ── BOTTOM CONTENT ── */}
           <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pb-8 md:px-12 md:pb-10">
 
@@ -237,17 +249,6 @@ export const PrismaHero = () => {
                   </div>
                 </div>
 
-                {/* Scroll indicator */}
-                <div
-                  ref={indRef}
-                  className="flex items-center gap-2 text-white/35 uppercase tracking-widest"
-                  style={{ fontSize: "0.6rem" }}
-                >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 animate-bounce">
-                    <ArrowDown className="h-3 w-3" />
-                  </span>
-                  Scroll to expand
-                </div>
               </div>
 
             </div>
