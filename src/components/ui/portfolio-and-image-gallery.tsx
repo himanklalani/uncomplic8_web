@@ -341,9 +341,9 @@ export function DemoRadialScrollGalleryBasic() {
             <div className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
                Workflow
             </div>
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl text-foreground">
-              The Process
-            </h1>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-foreground">
+              How we build.
+            </h2>
             <p className="text-foreground/60 text-sm max-w-[300px] mx-auto">
               Scroll down to see the steps.
             </p>

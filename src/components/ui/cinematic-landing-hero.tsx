@@ -253,12 +253,12 @@ export function CinematicHero({
 
       {/* BACKGROUND LAYER: Hero Texts */}
       <div className="hero-text-wrapper absolute z-10 flex flex-col items-center justify-center text-center w-full px-4 will-change-transform transform-style-3d">
-        <h1 className="text-track gsap-reveal text-3d-matte text-3xl md:text-7xl lg:text-[6rem] font-bold tracking-tight mb-1 md:mb-2">
+        <h2 className="text-track gsap-reveal text-3d-matte text-3xl md:text-7xl lg:text-[6rem] font-bold tracking-tight mb-1 md:mb-2">
           {tagline1}
-        </h1>
-        <h1 className="text-days gsap-reveal text-silver-matte text-3xl md:text-7xl lg:text-[6rem] font-extrabold tracking-tighter">
+        </h2>
+        <h2 className="text-days gsap-reveal text-silver-matte text-3xl md:text-7xl lg:text-[6rem] font-extrabold tracking-tighter">
           {tagline2}
-        </h1>
+        </h2>
       </div>
 
 

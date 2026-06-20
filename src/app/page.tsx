@@ -7,6 +7,7 @@ import { Skiper39 } from "@/components/ui/crowd-canvas";
 import { IntroPreloader } from "@/components/ui/intro-preloader";
 import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import { DemoRadialScrollGalleryBasic } from "@/components/ui/portfolio-and-image-gallery";
+import { FaqSection } from "@/components/ui/faq-section";
 
 export default function Home() {
   // Prevent hydration layout jumps with GSAP scroll triggers
@@ -51,6 +52,9 @@ export default function Home() {
       <div className="relative z-20 w-full bg-background">
         <DemoRadialScrollGalleryBasic />
       </div>
+
+      {/* 3.8 SEO FAQ Section */}
+      <FaqSection />
 
       {/* 4. Footer Crowd Canvas - Join Movement */}
       <Skiper39 />

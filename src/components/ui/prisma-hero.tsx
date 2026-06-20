@@ -198,6 +198,7 @@ export const PrismaHero = () => {
                 <h1
                   ref={h1Ref}
                   className="font-medium leading-none flex flex-wrap"
+                  aria-label="Uncomplic8"
                   style={{
                     fontFamily: "'Instrument Serif', serif",
                     fontSize: "clamp(3rem, 9.5vw, 9.5rem)",
@@ -206,7 +207,7 @@ export const PrismaHero = () => {
                   }}
                 >
                   {BRAND.map((char, i) => (
-                    <span key={i} className="ph-char inline-block" style={{ display: "inline-block" }}>
+                    <span key={i} aria-hidden="true" className="ph-char inline-block" style={{ display: "inline-block" }}>
                       {char}
                     </span>
                   ))}

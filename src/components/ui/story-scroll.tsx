@@ -139,7 +139,7 @@ export function FlowArtDefaultDemo() {
         <p className="text-xs font-bold uppercase tracking-[0.2em]">01 — Philosophy</p>
         <hr className="my-4 md:my-[1.5vw] border-none border-t border-black opacity-100" />
         <div>
-          <h1
+          <h2
             className="text-[clamp(2rem,10vw,10rem)] font-bold leading-[0.85] tracking-tight uppercase"
           >
             Simplify.
@@ -147,7 +147,7 @@ export function FlowArtDefaultDemo() {
             Scale.
             <br />
             Succeed.
-          </h1>
+          </h2>
         </div>
         
         {/* Decorative Space Filler */}
