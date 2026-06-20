@@ -280,6 +280,26 @@ export function ProjectCarousel() {
           </div>
         </div>
       </div>
+
+      {/* SEO & Backlinks: Project Directory with relevant surrounding context */}
+      <div className="mt-16 md:mt-24 px-4 md:px-8 border-t border-white/10 pt-10">
+        <h3 className="text-white/30 text-xs font-bold uppercase tracking-[0.2em] mb-8">
+          Project Directory & Case Studies
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+          {PROJECTS.map((project) => (
+            <div key={project.id} className="flex flex-col gap-3">
+              <h4 className="text-white/80 font-medium text-lg flex items-center gap-2">
+                <project.icon className="w-4 h-4 text-[var(--accent)]" />
+                {project.label}
+              </h4>
+              <p className="text-sm text-white/50 leading-relaxed">
+                As part of our <strong>{project.tag}</strong> portfolio, we developed the <a href={project.href} target="_blank" rel="noopener noreferrer" className="text-white hover:text-[var(--accent)] underline decoration-white/30 hover:decoration-[var(--accent)] underline-offset-4 transition-all font-medium">{project.label}</a> digital experience. {project.description} This project highlights our expertise in delivering scalable, high-performance web solutions tailored to client needs.
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
