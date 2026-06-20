@@ -210,12 +210,6 @@ export const PrismaHero = () => {
                       {char}
                     </span>
                   ))}
-                  <span
-                    className="ph-char inline-block self-start"
-                    style={{ fontSize: "0.28em", marginTop: "0.25em", marginLeft: "0.1em", color: "#E1E0CC", opacity: 0.6 }}
-                  >
-                    ®
-                  </span>
                 </h1>
               </div>
 
