@@ -11,6 +11,7 @@ import {
   Home,
   Bot,
   ExternalLink,
+  Printer,
 } from "lucide-react";
 
 const PROJECTS = [
@@ -68,6 +69,17 @@ const PROJECTS = [
     description:
       "An end-to-end clinic management system online booking, CRM dashboard, and automated WhatsApp notifications via Meta API.",
     tag: "SaaS · Automation",
+  },
+  {
+    id: "rex-international",
+    label: "Rex International",
+    icon: Printer,
+    href: "https://rexweb-seven.vercel.app/",
+    image:
+      "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1782324734/Screenshot_2026-06-24_234151_uzszlb.png",
+    description:
+      "A digital platform for a leading manufacturer and supplier of printers, cartridges, and high-quality printing consumables.",
+    tag: "Manufacturing · B2B",
   },
 ];
 
