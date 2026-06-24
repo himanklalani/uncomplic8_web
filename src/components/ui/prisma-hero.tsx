@@ -63,9 +63,15 @@ export const PrismaHero = () => {
         trigger: outer,
         start:   "top top",
         end:     "bottom bottom",
-        scrub:   0.6,
+        scrub:   1.2,
         pin:     stickyRef.current,
         pinSpacing: false,
+        snap: {
+          snapTo: [0, 0.5, 1],
+          duration: { min: 0.4, max: 0.8 },
+          ease: "power2.inOut",
+          delay: 0.05,
+        },
       },
     });
 
@@ -98,7 +104,7 @@ export const PrismaHero = () => {
     if (stats) tl.to(stats, { y: 0, opacity: 1, ease: "power2.out", duration: 0.6 }, 0.45);
 
     /* Phase 2 – hold */
-    tl.to({}, { duration: 1 });
+    tl.to({}, { duration: 1.5 });
 
     return () => {
       tl.kill();
@@ -109,7 +115,7 @@ export const PrismaHero = () => {
   const BRAND = "Uncomplic8".split("");
 
   return (
-    <div ref={outerRef} style={{ height: "300vh" }} className="relative w-full">
+    <div ref={outerRef} style={{ height: "400vh" }} className="relative w-full">
 
       <div
         ref={stickyRef}
