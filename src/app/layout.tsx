@@ -20,20 +20,20 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Uncomplic8 Tech | High-Performance Web Design, SEO & Automation",
-  description: "Specializing in building high-performance, visually stunning web applications with React, Next.js, SEO, and WhatsApp Automation.",
-  keywords: ["Web Design Agency", "SEO Optimization", "WhatsApp Automation", "Next.js Development", "Clinic Web Design"],
+  title: "Uncomplic8 Tech | Custom Web Development, Technical SEO & Automation",
+  description: "We build bespoke websites and business automation tools in React and Next.js. Fast loading, clean source code, and full project handover.",
+  keywords: ["Web Design", "Technical SEO", "WhatsApp Automation", "Next.js Development", "Custom Web Apps"],
   openGraph: {
     type: "website",
-    title: "Uncomplic8 Tech | Web Developer, Designer & SEO Specialist",
-    description: "Specializing in building high-performance, visually stunning web applications with React, Next.js, Node.js, and TypeScript.",
+    title: "Uncomplic8 Tech | Web Development & Automation",
+    description: "Bespoke websites, technical SEO, and WhatsApp integrations built with React and Next.js.",
     url: "https://uncomplic8.tech", // Placeholder URL
     siteName: "Uncomplic8 Tech",
   },
   twitter: {
     card: "summary_large_image",
     title: "Uncomplic8 Tech",
-    description: "High-Performance Web Design, SEO & Automation.",
+    description: "Custom websites, technical SEO, and business automation.",
   },
 };
 
@@ -52,7 +52,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "ProfessionalService",
               "name": "Uncomplic8 Tech",
-              "description": "High-Performance Web Design, SEO & Automation Agency.",
+              "description": "Custom web development, technical SEO, and business automation studio.",
               "url": "https://uncomplic8.tech",
               "sameAs": [],
               "areaServed": "Global",

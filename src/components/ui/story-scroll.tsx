@@ -78,6 +78,8 @@ export const FlowArt: React.FC<FlowArtProps> = ({
       const isMobile = window.innerWidth < 768;
       const pinOffset = isMobile ? "300vh" : "100vh";
 
+      const pinTriggers: ScrollTrigger[] = [];
+
       sections.forEach((section, i) => {
         gsap.set(section, { zIndex: i + 1 });
 
@@ -100,17 +102,45 @@ export const FlowArt: React.FC<FlowArtProps> = ({
         }
 
         if (i < sections.length - 1) {
-          triggers.push(
-            ScrollTrigger.create({
-              trigger: section,
-              start: 'bottom bottom',
-              end: `bottom top-=${pinOffset}`,
-              pin: true,
-              pinSpacing: false,
-            }),
-          );
+          const pinTrigger = ScrollTrigger.create({
+            trigger: section,
+            start: 'bottom bottom',
+            end: `bottom top-=${pinOffset}`,
+            pin: true,
+            pinSpacing: false,
+          });
+          triggers.push(pinTrigger);
+          pinTriggers.push(pinTrigger);
         }
       });
+
+      // Master Critically Damped Snap (settles smoothly and waits firmly at each card level)
+      if (pinTriggers.length > 0) {
+        const detentCount = sections.length;
+
+        const masterSnap = ScrollTrigger.create({
+          start: () => pinTriggers[0]?.start ?? 0,
+          end: () => pinTriggers[pinTriggers.length - 1]?.end ?? 0,
+          snap: {
+            snapTo: (progress) => {
+              const step = 1 / (detentCount - 1);
+              const index = Math.floor(progress / step);
+              const fraction = (progress - index * step) / step;
+              // Require at least 65% scroll commitment to advance to the next card
+              // Otherwise firmly hold and snap back to current level so it waits rather than elastically pulling ahead
+              const targetIndex = fraction > 0.65 ? index + 1 : index;
+              const clamped = Math.max(0, Math.min(detentCount - 1, targetIndex));
+              return clamped * step;
+            },
+            inertia: false, // Prevents projecting momentum forward past the resting point
+            directional: false, // Disables forward momentum bias
+            delay: 0.18, // Waits 180ms until trackpad/wheel momentum completely ceases
+            duration: { min: 0.5, max: 0.95 }, // Velvety, viscous dampening
+            ease: 'power2.out', // Asymptotic deceleration with zero bounce or momentum bleed
+          },
+        });
+        triggers.push(masterSnap);
+      }
 
       ScrollTrigger.refresh();
 
@@ -137,7 +167,7 @@ export function FlowArtDefaultDemo() {
     <FlowArt aria-label="Presentation Flow Art">
       <FlowSection aria-label="Our Philosophy" style={{ backgroundColor: '#fd5200', color: '#fff' }}>
         <p className="text-xs font-bold uppercase tracking-[0.2em]">01 — Philosophy</p>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black opacity-100" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-black opacity-100" />
         <div>
           <h2
             className="text-[clamp(2rem,10vw,10rem)] font-bold leading-[0.85] tracking-tight uppercase"
@@ -156,15 +186,15 @@ export function FlowArtDefaultDemo() {
             <path d="M12 2v20M17 5l-10 14M22 12H2M19 17L5 7" />
           </svg>
         </div>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black opacity-100" />
-        <p className="mt-auto max-w-[50ch] text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
+        <hr className="my-4 md:my-[1.5vw] border-t border-black opacity-100" />
+        <p className="mt-8 md:mt-[3vw] max-w-[50ch] text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
           Technology should simplify your business, not complicate it. Because streamlined systems are quicker to scale.
         </p>
       </FlowSection>
 
       <FlowSection aria-label="Selected Works" style={{ backgroundColor: '#111111', color: '#fff' }}>
         <p className="text-xs font-bold uppercase tracking-[0.2em]">02 — Selected Works</p>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-white/60" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-white/60" />
         <div>
           <h2
             className="text-[clamp(2rem,10vw,10rem)] font-bold leading-[0.85] tracking-tight uppercase"
@@ -176,24 +206,24 @@ export function FlowArtDefaultDemo() {
             Always
           </h2>
         </div>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-white/60" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-white/60" />
         <p className="max-w-[50ch] text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
           Real work, real clients, real results a collection of robust applications built with modern web technologies.
         </p>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-white/60" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-white/60" />
         {/* Projects carousel */}
         <div className="w-full">
           <ProjectCarousel />
         </div>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-white/60" />
-        <p className="mt-auto ml-auto max-w-[50ch] text-right text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
+        <hr className="my-4 md:my-[1.5vw] border-t border-white/60" />
+        <p className="mt-8 md:mt-[3vw] ml-auto max-w-[50ch] text-right text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
           Every project we take on starts with one question how does this drive business value for the client?
         </p>
       </FlowSection>
 
       <FlowSection aria-label="Web Dev Workflow" style={{ backgroundColor: '#F5F0E8', color: '#111111' }}>
         <p className="text-xs font-bold uppercase tracking-[0.2em]">03 — Web Dev Workflow</p>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black/60" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-black/60" />
         <div>
           <h2
             className="text-[clamp(2rem,10vw,10rem)] font-bold leading-[0.85] tracking-tight uppercase"
@@ -205,11 +235,11 @@ export function FlowArtDefaultDemo() {
             Ship.
           </h2>
         </div>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black/60" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-black/60" />
         <p className="max-w-[50ch] text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
           A six-step engineering pipeline. From scalable React architectures to flawless Next.js deployments, zero complexity for you.
         </p>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black/60" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-black/60" />
         <div className="flex flex-wrap gap-8 md:gap-[3vw]">
           <div className="min-w-[180px] flex-1">
             <p className="mb-2 text-sm font-bold uppercase tracking-wider">01 — Architecture</p>
@@ -230,7 +260,7 @@ export function FlowArtDefaultDemo() {
             </p>
           </div>
         </div>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black/60" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-black/60" />
         <div className="flex flex-wrap gap-8 md:gap-[3vw]">
           <div className="min-w-[180px] flex-1">
             <p className="mb-2 text-sm font-bold uppercase tracking-wider">04 — Interaction</p>
@@ -255,7 +285,7 @@ export function FlowArtDefaultDemo() {
 
       <FlowSection aria-label="True Ownership" style={{ backgroundColor: '#D1CBC0', color: '#111111' }}>
         <p className="text-xs font-bold uppercase tracking-[0.2em]">04 — True Ownership</p>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black/50" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-black/50" />
         <div>
           <h2
             className="text-[clamp(2rem,10vw,10rem)] font-bold leading-[0.85] tracking-tight uppercase"
@@ -267,11 +297,11 @@ export function FlowArtDefaultDemo() {
             Code
           </h2>
         </div>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black/50" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-black/50" />
         <p className="max-w-[50ch] text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
           How beneficial will working together be? Since we code everything natively, all ownership post-development is 100% yours.
         </p>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black/50" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-black/50" />
         <div className="flex flex-wrap gap-8 md:gap-[3vw]">
           <div className="min-w-[180px] flex-1">
             <p className="mb-2 text-sm font-bold uppercase tracking-wider">Zero Lock-in</p>
@@ -292,7 +322,7 @@ export function FlowArtDefaultDemo() {
             </p>
           </div>
         </div>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-black/50" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-black/50" />
         <p className="max-w-[50ch] text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
           We don't just build websites. We engineer durable digital assets that belong entirely to you, designed to scale as your business grows.
         </p>
@@ -300,7 +330,7 @@ export function FlowArtDefaultDemo() {
 
       <FlowSection aria-label="Let's Talk" style={{ backgroundColor: '#111111', color: '#fff' }}>
         <p className="text-xs font-bold uppercase tracking-[0.2em]">05 — Let's Talk</p>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-white/60" />
+        <hr className="my-4 md:my-[1.5vw] border-t border-white/60" />
         <div>
           <h2
             className="text-[clamp(2rem,10vw,10rem)] font-bold leading-[0.85] tracking-tight uppercase"
@@ -321,8 +351,8 @@ export function FlowArtDefaultDemo() {
             <path d="M2 12h20" />
           </svg>
         </div>
-        <hr className="my-4 md:my-[1.5vw] border-none border-t border-white/60" />
-        <p className="mt-auto max-w-[50ch] text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
+        <hr className="my-4 md:my-[1.5vw] border-t border-white/60" />
+        <p className="mt-8 md:mt-[3vw] max-w-[50ch] text-[clamp(1rem,2.5vw,2rem)] font-normal leading-relaxed">
           Take control of your digital presence. Let's discuss your vision, audit your needs, and build something extraordinary together.
         </p>
       </FlowSection>

@@ -162,11 +162,11 @@ CardTransformed.displayName = "CardTransformed"
 
 
 const WORKFLOW_STEPS = [
-  { step: "01", title: "Discovery", desc: "Requirements gathering and deep-dive strategy sessions.", icon: Search },
-  { step: "02", title: "Strategy", desc: "Actionable roadmaps and precise technical architecture.", icon: Map },
-  { step: "03", title: "Design", desc: "Intuitive interface design and user experience prototyping.", icon: PenTool },
-  { step: "04", title: "Build", desc: "Robust development and rigorous quality assurance.", icon: Code },
-  { step: "05", title: "Launch", desc: "Seamless deployment and continuous post-launch support.", icon: Rocket },
+  { step: "01", title: "Discovery", desc: "We review your requirements, target audience, and must-have features.", icon: Search },
+  { step: "02", title: "Strategy", desc: "We map out page routes, database schemas, and API connections.", icon: Map },
+  { step: "03", title: "Design", desc: "We create clean, responsive mockups tailored specifically to your brand.", icon: PenTool },
+  { step: "04", title: "Build", desc: "We write clean Next.js code tested across mobile and desktop devices.", icon: Code },
+  { step: "05", title: "Launch", desc: "We configure your domain, verify search tags, and hand over the repository.", icon: Rocket },
 ]
 
 export function MobileWorkflowVariant() {

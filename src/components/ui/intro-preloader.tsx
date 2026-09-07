@@ -4,11 +4,27 @@ import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Premium cinematic preloader — 3-stage GSAP sequence
-//  Stage 1: Mechanical counter (0 → 100)
-//  Stage 2: Brand flash  ("UNCOMPLIC8" slams in)
-//  Stage 3: Cinematic split-wipe (panels fly off screen)
+// Preloader: 3-stage GSAP sequence
+//  Stage 1: Counter (0 to 100)
+//  Stage 2: Brand flash
+//  Stage 3: Split-wipe panel exit
 // ─────────────────────────────────────────────────────────────────────────────
+
+const PRELOAD_ASSETS = {
+  video:
+    "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_170732_8a9ccda6-5cff-4628-b164-059c500a2b41.mp4",
+  images: [
+    "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781360950/Screenshot_2026-06-13_195827_dbbkmp.png",
+    "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781361247/Screenshot_2026-06-13_200333_nikxkj.png",
+    "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781358525/Screenshot_2026-06-13_165337_ztgw5o.png",
+    "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781361497/Screenshot_2026-06-13_200710_k26ya9.png",
+    "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781360692/Screenshot_2026-06-13_195354_olgsmo.png",
+    "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1782324734/Screenshot_2026-06-24_234151_uzszlb.png",
+    "https://res.cloudinary.com/kouanazg/image/upload/f_auto,q_auto/v1782990313/Screenshot_2026-07-02_163454_og7utu.png",
+    "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=2000&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2000&auto=format&fit=crop",
+  ],
+};
 
 export function IntroPreloader() {
   const rootRef     = useRef<HTMLDivElement>(null);
@@ -32,14 +48,13 @@ export function IntroPreloader() {
 
     if (!root || !topPanel || !botPanel || !counter || !countWrap || !brand || !line || !tag) return;
 
-    // Respect reduced motion — instant remove
+    // Respect reduced motion: instant remove
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setTimeout(() => root.remove(), 300);
       return;
     }
 
     // ── Initial states ──────────────────────────────────────────────────────
-    // Use autoAlpha for better visibility toggling
     gsap.set(brand,     { yPercent: 40, autoAlpha: 0 });
     gsap.set(tag,       { yPercent: 40, autoAlpha: 0 });
     gsap.set(line,      { scaleX: 0, transformOrigin: "left center" });
@@ -47,74 +62,206 @@ export function IntroPreloader() {
     gsap.set(topPanel,  { yPercent: 0 });
     gsap.set(botPanel,  { yPercent: 0 });
 
-    // ── Master timeline ──────────────────────────────────────────────────────
-    const tl = gsap.timeline({
-      onComplete: () => {
-        // Fully remove from DOM after wipe is done
-        if (root) root.style.display = "none";
-      },
+    let isCancelled = false;
+    const startTime = Date.now();
+    const minDisplayDuration = 1200; // minimum 1.2s so counter feels deliberate
+    const maxSafetyTimeout   = 5000; // maximum 5s safety failsafe
+
+    // Weights: Video 35%, Fonts 10%, Images 55% (~6.1% per image)
+    const videoWeight = 35;
+    const fontWeight = 10;
+    const imageWeight = 55 / PRELOAD_ASSETS.images.length;
+
+    let loadedScore = 0;
+    const displayObj = { val: 0 };
+
+    const updateDisplay = () => {
+      if (isCancelled) return;
+      const target = Math.min(100, Math.round(loadedScore));
+      gsap.to(displayObj, {
+        val: target,
+        duration: 0.35,
+        ease: "power2.out",
+        onUpdate: () => {
+          if (counter) counter.textContent = String(Math.floor(displayObj.val)).padStart(3, "0");
+          if (line) gsap.set(line, { scaleX: displayObj.val / 100 });
+        },
+      });
+    };
+
+    const onItemLoaded = (weight: number) => {
+      loadedScore += weight;
+      updateDisplay();
+    };
+
+    // 1. Preload Hero Video
+    const preloadVideoPromise = new Promise<void>((resolve) => {
+      const vid = document.createElement("video");
+      vid.src = PRELOAD_ASSETS.video;
+      vid.preload = "auto";
+      vid.muted = true;
+      vid.playsInline = true;
+
+      const finish = () => {
+        cleanup();
+        onItemLoaded(videoWeight);
+        resolve();
+      };
+
+      const cleanup = () => {
+        vid.removeEventListener("canplaythrough", finish);
+        vid.removeEventListener("canplay", finish);
+        vid.removeEventListener("loadeddata", finish);
+        vid.removeEventListener("error", finish);
+      };
+
+      vid.addEventListener("canplaythrough", finish, { once: true });
+      vid.addEventListener("canplay", finish, { once: true });
+      vid.addEventListener("loadeddata", finish, { once: true });
+      vid.addEventListener("error", finish, { once: true });
+
+      if (vid.readyState >= 3) {
+        finish();
+      } else {
+        vid.load();
+      }
+      setTimeout(finish, 4000);
     });
 
-    // Stage 1: Counter ticks up
-    const obj = { val: 0 };
-    tl.to(obj, {
-      val: 100,
-      duration: 1.1,
-      ease: "power2.inOut",
-      onUpdate: () => {
-        if (counter) counter.textContent = String(Math.floor(obj.val)).padStart(3, "0");
-      },
+    // 2. Preload Images with GPU decode
+    const preloadImagePromises = PRELOAD_ASSETS.images.map((url) => {
+      return new Promise<void>((resolve) => {
+        const img = new Image();
+        img.src = url;
+
+        const finish = () => {
+          onItemLoaded(imageWeight);
+          resolve();
+        };
+
+        if (img.complete) {
+          if ("decode" in img) {
+            img.decode().then(finish).catch(finish);
+          } else {
+            finish();
+          }
+          return;
+        }
+
+        img.onload = () => {
+          if ("decode" in img) {
+            img.decode().then(finish).catch(finish);
+          } else {
+            finish();
+          }
+        };
+        img.onerror = finish;
+        setTimeout(finish, 3500);
+      });
     });
 
-    // Stage 1b: Progress line tracks with counter (runs in parallel)
-    tl.to(line, {
-      scaleX: 1,
-      duration: 1.1,
-      ease: "power2.inOut",
-    }, "<");
+    // 3. Preload Fonts
+    const preloadFontsPromise = (document.fonts ? document.fonts.ready : Promise.resolve())
+      .then(() => {
+        onItemLoaded(fontWeight);
+      })
+      .catch(() => {
+        onItemLoaded(fontWeight);
+      });
 
-    // Stage 2: Swap — counter exits, brand enters
-    tl.to(countWrap, {
-      yPercent: -60,
-      autoAlpha: 0,
-      duration: 0.4,
-      ease: "power4.in",
+    const allPreloads = Promise.all([
+      preloadVideoPromise,
+      ...preloadImagePromises,
+      preloadFontsPromise,
+    ]);
+
+    const safetyTimeout = new Promise((resolve) => setTimeout(resolve, maxSafetyTimeout));
+
+    Promise.race([allPreloads, safetyTimeout]).then(() => {
+      if (isCancelled) return;
+
+      loadedScore = 100;
+      const elapsed = Date.now() - startTime;
+      const remainingMinTime = Math.max(0, minDisplayDuration - elapsed);
+
+      setTimeout(() => {
+        if (isCancelled) return;
+
+        gsap.to(displayObj, {
+          val: 100,
+          duration: 0.35,
+          ease: "power2.out",
+          onUpdate: () => {
+            if (counter) counter.textContent = "100";
+            if (line) gsap.set(line, { scaleX: 1 });
+          },
+          onComplete: () => {
+            if (isCancelled) return;
+
+            // ── Exit Timeline: Brand Flash & Split-Wipe ──
+            const exitTl = gsap.timeline({
+              onComplete: () => {
+                if (root) root.style.display = "none";
+              },
+            });
+
+            // Stage 2: Swap counter for brand
+            exitTl.to(countWrap, {
+              yPercent: -60,
+              autoAlpha: 0,
+              duration: 0.4,
+              ease: "power4.in",
+            });
+
+            exitTl.to(
+              [brand, tag],
+              {
+                yPercent: 0,
+                autoAlpha: 1,
+                duration: 0.8,
+                ease: "expo.out",
+                stagger: 0.08,
+              },
+              "-=0.1"
+            );
+
+            // Brief brand display hold
+            exitTl.to({}, { duration: 0.6 });
+
+            // Stage 3: Split-wipe panels exit
+            exitTl.to(topPanel, {
+              yPercent: -100,
+              duration: 0.85,
+              ease: "power4.inOut",
+            });
+
+            exitTl.to(
+              botPanel,
+              {
+                yPercent: 100,
+                duration: 0.85,
+                ease: "power4.inOut",
+              },
+              "<"
+            );
+
+            exitTl.to(
+              [brand, tag],
+              {
+                scale: 1.15,
+                autoAlpha: 0,
+                duration: 0.45,
+                ease: "power2.in",
+              },
+              "<"
+            );
+          },
+        });
+      }, remainingMinTime);
     });
-
-    tl.to([brand, tag], {
-      yPercent: 0,
-      autoAlpha: 1,
-      duration: 0.8,
-      ease: "expo.out",
-      stagger: 0.08,
-    }, "-=0.1"); // slightly overlap the entrance with counter exit
-
-    // Brief hold
-    tl.to({}, { duration: 0.6 });
-
-    // Stage 3: Cinematic split-wipe — panels fly away AND text exits
-    tl.to(topPanel, {
-      yPercent: -100,
-      duration: 0.85,
-      ease: "power4.inOut",
-    });
-    
-    tl.to(botPanel, {
-      yPercent: 100,
-      duration: 0.85,
-      ease: "power4.inOut",
-    }, "<");
-
-    // Brand text exits by scaling up and fading out just as the wipe starts
-    tl.to([brand, tag], {
-      scale: 1.15,
-      autoAlpha: 0,
-      duration: 0.45,
-      ease: "power2.in",
-    }, "<");
 
     return () => {
-      tl.kill();
+      isCancelled = true;
     };
   }, []);
 
@@ -213,7 +360,7 @@ export function IntroPreloader() {
           </div>
         </div>
 
-        {/* Brand name — enters after counter */}
+        {/* Brand name: enters after counter */}
         <div
           ref={brandRef}
           style={{
@@ -258,7 +405,7 @@ export function IntroPreloader() {
               visibility: "hidden", // Prevent FOUC
             }}
           >
-            Tech Agency &mdash; Web · SEO · Automation · Ownership
+            Web Studio · SEO · Automation · Independent Code
           </p>
         </div>
       </div>

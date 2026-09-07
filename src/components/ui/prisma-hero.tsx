@@ -68,9 +68,10 @@ export const PrismaHero = () => {
         pinSpacing: false,
         snap: {
           snapTo: [0, 0.5, 1],
-          duration: { min: 0.4, max: 0.8 },
-          ease: "power2.inOut",
-          delay: 0.05,
+          duration: { min: 0.5, max: 0.9 },
+          ease: "power2.out",
+          delay: 0.18,
+          inertia: false,
         },
       },
     });

@@ -20,12 +20,12 @@ export default function Home() {
       {/* 0. Pixelate Wipe Loader */}
       <IntroPreloader />
 
-      {/* 1. Fullscreen Video Hero — z-0 so orange card stacks over it */}
+      {/* 1. Fullscreen Video Hero: z-0 so orange card stacks over it */}
       <div className="relative z-0">
         <PrismaHero />
       </div>
 
-      {/* 3. Story Scroll — negative margin pulls it up so it slides OVER the pinned hero */}
+      {/* 3. Story Scroll: negative margin pulls it up so it slides OVER the pinned hero */}
       <div
         className="relative z-10 bg-background rounded-t-[2.5rem] overflow-hidden"
         style={{ marginTop: "-100vh", boxShadow: "0 -32px 80px rgba(0,0,0,0.30)" }}
@@ -37,14 +37,14 @@ export default function Home() {
       <div className="relative z-20 w-full bg-background min-h-screen">
         <CinematicHero 
           brandName="Uncomplic8 Tech"
-          tagline1="Crafting code,"
-          tagline2="driving growth."
-          cardHeading="Performance & SEO."
-          cardDescription={<><span className="text-white font-semibold">Uncomplic8 Tech</span> delivers high-performance digital solutions with structured precision, beautiful animations, and scalable architectures.</>}
+          tagline1="Clean code,"
+          tagline2="fast load times."
+          cardHeading="Performance and SEO"
+          cardDescription={<><span className="text-white font-semibold">Uncomplic8 Tech</span> builds websites and automation tools from scratch. Sub-second page loads, clean code, and zero dependency on heavy plugins.</>}
           metricValue={100}
-          metricLabel="Audit Score"
-          ctaHeading="Start your project."
-          ctaDescription="Let's collaborate to build an extraordinary digital presence that stands out."
+          metricLabel="Lighthouse Score"
+          ctaHeading="Have a project in mind?"
+          ctaDescription="Send us a brief or message on WhatsApp. We usually review specs and reply within a few hours."
         />
       </div>
 

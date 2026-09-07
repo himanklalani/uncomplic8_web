@@ -9,33 +9,33 @@ import { cn } from "@/lib/utils";
 const items = [
   {
     id: "01",
-    title: "Web Design Services",
+    title: "What kind of projects do you build?",
     content:
-      "We specialize in high-performance, custom web development including e-commerce platforms, SaaS dashboards, clinic web design, and bespoke corporate websites. We code everything from scratch to ensure pixel-perfect design and flawless user experiences.",
+      "We build custom websites and web applications in React and Next.js. That covers retail stores, clinic booking systems, and company landing pages. We write our own styles and components, so pages load fast and there are no plugin conflicts.",
   },
   {
     id: "02",
-    title: "SEO Optimization",
+    title: "How do you handle SEO?",
     content:
-      "Our SEO strategy is built into the foundation of your website. We implement robust semantic HTML, schema markups, optimized metadata, and rapid page-load speeds, giving you the technical edge needed to rank higher on Google.",
+      "We handle technical on-page SEO directly in the code. Every page gets clean semantic HTML, structured JSON-LD schema, open graph social tags, and automatic sitemaps. Search engines index clean markup much faster than heavy page builders.",
   },
   {
     id: "03",
-    title: "WhatsApp Automation",
+    title: "How does WhatsApp automation work?",
     content:
-      "We seamlessly integrate the official Meta WhatsApp Business API into your CRM or website. This enables automated booking confirmations, customer support flows, and patient engagement directly through WhatsApp.",
+      "We connect your website or booking form to the official Meta WhatsApp Business API. When someone requests an appointment or submits an enquiry, the system immediately sends a confirmed WhatsApp message to both you and the customer.",
   },
   {
     id: "04",
-    title: "Why avoid templates?",
+    title: "Why avoid WordPress templates?",
     content:
-      "Templates are bloated, slow, and limit your brand's unique identity. By using modern tech stacks like Next.js and React, we deliver fully customized digital experiences that load instantly, secure your data, and convert visitors into customers.",
+      "Commercial themes pack dozens of unused scripts and stylesheets that slow down mobile load times. Custom code only includes what your site actually needs, keeping speeds high and eliminating third-party plugin vulnerabilities.",
   },
   {
     id: "05",
-    title: "Ongoing Support",
+    title: "What happens after launch?",
     content:
-      "Absolutely. We act as your long-term digital engineering partner. From continuous performance optimization to scaling your web architecture as your business grows, we ensure your platform remains cutting-edge.",
+      "You own the finished codebase 100%. If you need updates or new features later on, you can hire us on an hourly or project basis, or hand the code to your in-house team. No mandatory retainers.",
   },
 ];
 
@@ -53,7 +53,7 @@ export function FaqSection() {
             </h2>
           </div>
           <p className="text-sm opacity-60 max-w-[40ch] leading-relaxed">
-            Everything you need to know about our custom engineering, SEO, and automation services.
+            Clear answers about our development process, tech stack, and pricing structure.
           </p>
         </div>
 

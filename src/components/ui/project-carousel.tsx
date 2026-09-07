@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion, useMotionValue, useMotionValueEvent, animate } from "motion/react";
 import { cn } from "@/lib/utils";
 import {
   Globe,
@@ -13,6 +13,10 @@ import {
   ExternalLink,
   Printer,
   Package,
+  Glasses,
+  Briefcase,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 const PROJECTS = [
@@ -20,11 +24,11 @@ const PROJECTS = [
     id: "srs-dental",
     label: "SRS Dental Care",
     icon: Stethoscope,
-    href: "https://srs-website-tan.vercel.app",
+    href: "https://www.srsdentalcare.in/",
     image:
       "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781360950/Screenshot_2026-06-13_195827_dbbkmp.png",
     description:
-      "A modern dental clinic website with online appointment booking, service showcase, and patient testimonials.",
+      "Website for an established dental clinic with treatment guides, doctor profiles, and direct appointment scheduling.",
     tag: "Healthcare · Web Design",
   },
   {
@@ -35,7 +39,7 @@ const PROJECTS = [
     image:
       "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781361247/Screenshot_2026-06-13_200333_nikxkj.png",
     description:
-      "A full-featured e-commerce and services site for a Mumbai-based computer hardware retailer repairs, builds, and more.",
+      "Online store and repair portal for a Mumbai computer hardware shop, featuring custom PC quotes and component inventory.",
     tag: "E-Commerce · Retail",
   },
   {
@@ -46,7 +50,7 @@ const PROJECTS = [
     image:
       "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781358525/Screenshot_2026-06-13_165337_ztgw5o.png",
     description:
-      "An elegant imitation jewellery brand store with curated collections, lookbooks, and seamless checkout experience.",
+      "E-commerce store for fashion jewellery featuring product filtering, photo lookbooks, and direct WhatsApp ordering.",
     tag: "Fashion · E-Commerce",
   },
   {
@@ -57,7 +61,7 @@ const PROJECTS = [
     image:
       "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781361497/Screenshot_2026-06-13_200710_k26ya9.png",
     description:
-      "A stunning real estate agent business card website with scroll-driven animations and property showcase.",
+      "Digital portfolio for a property consultant featuring active listings, area guides, and direct enquiry forms.",
     tag: "Real Estate · Landing Page",
   },
   {
@@ -68,18 +72,18 @@ const PROJECTS = [
     image:
       "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1781360692/Screenshot_2026-06-13_195354_olgsmo.png",
     description:
-      "An end-to-end clinic management system online booking, CRM dashboard, and automated WhatsApp notifications via Meta API.",
+      "Clinic appointment software with patient record management and automated WhatsApp reminder alerts through the Meta Cloud API.",
     tag: "SaaS · Automation",
   },
   {
     id: "rex-international",
     label: "Rex International",
     icon: Printer,
-    href: "https://rexweb-seven.vercel.app/",
+    href: "https://www.rexinternational.store/",
     image:
       "https://res.cloudinary.com/dhby5v7rw/image/upload/q_auto/f_auto/v1782324734/Screenshot_2026-06-24_234151_uzszlb.png",
     description:
-      "A digital platform for a leading manufacturer and supplier of printers, cartridges, and high-quality printing consumables.",
+      "Product catalogue and distributor website for an industrial supplier of office printers, toner cartridges, and repair parts.",
     tag: "Manufacturing · B2B",
   },
   {
@@ -90,235 +94,298 @@ const PROJECTS = [
     image:
       "https://res.cloudinary.com/kouanazg/image/upload/f_auto,q_auto/v1782990313/Screenshot_2026-07-02_163454_og7utu.png",
     description:
-      "A digital presence for a manufacturer of reusable polypropylene packaging solutions. Engineered around the load with zero to landfill.",
+      "B2B product showcase for an industrial packaging manufacturer specializing in reusable polypropylene crates and dunnage.",
     tag: "Manufacturing · B2B",
+  },
+  {
+    id: "jemy-eyewear",
+    label: "Jemy Eyewear",
+    icon: Glasses,
+    href: "https://jemy-seven.vercel.app/",
+    image:
+      "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=2000&auto=format&fit=crop",
+    description:
+      "E-commerce store for prescription glasses and sunglasses with frame measurements and prescription lens upload options.",
+    tag: "E-Commerce · Fashion",
+  },
+  {
+    id: "nolkha-co",
+    label: "Nolkha & Co",
+    icon: Briefcase,
+    href: "https://nolkha-zeta.vercel.app/",
+    image:
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2000&auto=format&fit=crop",
+    description:
+      "Corporate website for a chartered accountancy practice, outlining statutory audit, GST filing, and cross-border tax advisory services.",
+    tag: "Finance · Corporate",
   },
 ];
 
-const AUTO_PLAY_INTERVAL = 3500;
-const ITEM_HEIGHT = 54;
-
-const wrap = (min: number, max: number, v: number) => {
-  const rangeSize = max - min;
-  return ((((v - min) % rangeSize) + rangeSize) % rangeSize) + min;
-};
-
 export function ProjectCarousel() {
-  const [step, setStep] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
 
-  const currentIndex =
-    ((step % PROJECTS.length) + PROJECTS.length) % PROJECTS.length;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [maxScroll, setMaxScroll] = useState(0);
+  const [stepSize, setStepSize] = useState(620);
 
-  const nextStep = useCallback(() => setStep((prev) => prev + 1), []);
+  const x = useMotionValue(0);
 
-  const handleChipClick = (index: number) => {
-    const diff = (index - currentIndex + PROJECTS.length) % PROJECTS.length;
-    if (diff > 0) setStep((s) => s + diff);
-  };
+  // Recalculate dimensions on resize
+  const updateMeasurements = useCallback(() => {
+    if (!containerRef.current || !trackRef.current) return;
+    const containerWidth = containerRef.current.clientWidth;
+    const trackWidth = trackRef.current.scrollWidth;
+
+    const firstCard = trackRef.current.children[0] as HTMLElement | undefined;
+    const secondCard = trackRef.current.children[1] as HTMLElement | undefined;
+
+    let computedStep = 620;
+    if (firstCard && secondCard) {
+      computedStep = secondCard.offsetLeft - firstCard.offsetLeft;
+    } else if (firstCard) {
+      computedStep = firstCard.offsetWidth + 24;
+    }
+    setStepSize(computedStep);
+
+    const calculatedMax = Math.max(0, trackWidth - containerWidth);
+    setMaxScroll(calculatedMax);
+  }, []);
 
   useEffect(() => {
-    if (isPaused) return;
-    const interval = setInterval(nextStep, AUTO_PLAY_INTERVAL);
-    return () => clearInterval(interval);
-  }, [nextStep, isPaused]);
+    updateMeasurements();
+    window.addEventListener("resize", updateMeasurements);
+    const timeout = setTimeout(updateMeasurements, 250);
+    return () => {
+      window.removeEventListener("resize", updateMeasurements);
+      clearTimeout(timeout);
+    };
+  }, [updateMeasurements]);
 
-  const getCardStatus = (index: number) => {
-    const diff = index - currentIndex;
-    const len = PROJECTS.length;
-    let n = diff;
-    if (diff > len / 2) n -= len;
-    if (diff < -len / 2) n += len;
-    if (n === 0) return "active";
-    if (n === -1) return "prev";
-    if (n === 1) return "next";
-    return "hidden";
+  // Keep activeIndex synchronized with current scroll translation
+  useMotionValueEvent(x, "change", (latest) => {
+    if (stepSize <= 0) return;
+    const index = Math.round(-latest / stepSize);
+    const clamped = Math.max(0, Math.min(PROJECTS.length - 1, index));
+    if (clamped !== activeIndex) {
+      setActiveIndex(clamped);
+    }
+  });
+
+  const scrollToIndex = useCallback(
+    (index: number) => {
+      const clampedIndex = Math.max(0, Math.min(PROJECTS.length - 1, index));
+      const target = Math.max(-maxScroll, Math.min(0, -clampedIndex * stepSize));
+      animate(x, target, {
+        type: "spring",
+        stiffness: 220,
+        damping: 28,
+      });
+    },
+    [maxScroll, stepSize, x]
+  );
+
+  const handlePrev = () => {
+    scrollToIndex(Math.max(0, activeIndex - 1));
   };
 
-  const activeProject = PROJECTS[currentIndex];
+  const handleNext = () => {
+    scrollToIndex(Math.min(PROJECTS.length - 1, activeIndex + 1));
+  };
 
   return (
-    <div className="w-full max-w-7xl mx-auto md:p-8 mt-6 md:mt-12 mb-8 md:mb-20">
-      {/* Section header */}
-      <div className="mb-6 md:mb-12 px-4 md:px-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 md:gap-6">
+    <div className="w-full mt-6 md:mt-10 mb-8 md:mb-16">
+      {/* Section Header & Minimal Arrow Affordance */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 md:mb-8">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60 mb-2">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60 mb-2 text-white">
             Our Projects
           </p>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-tight leading-none text-white">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-tight leading-none text-white">
             Selected Works
-          </h2>
+          </h3>
         </div>
-        <p className="text-sm opacity-60 max-w-[35ch] leading-relaxed text-white">
-          A curated collection of client projects spanning web, e-commerce, and
-          automation. Built for performance and conversion.
-        </p>
-      </div>
 
-      <div className="relative overflow-hidden flex flex-col lg:flex-row min-h-[380px] md:min-h-[480px] lg:h-[520px]">
-        {/* Left — vertical label carousel */}
-        <div className="w-full lg:w-[45%] min-h-[140px] md:min-h-[300px] lg:h-full relative z-30 flex flex-col items-start justify-center overflow-hidden px-4 md:px-12 text-white">
-          <div className="absolute inset-x-0 top-0 h-16 md:h-24 lg:h-32 bg-gradient-to-b from-[#111111] via-[#111111]/80 to-transparent z-40" />
-          <div className="absolute inset-x-0 bottom-0 h-16 md:h-24 lg:h-32 bg-gradient-to-t from-[#111111] via-[#111111]/80 to-transparent z-40" />
+        <div className="flex items-center justify-between md:justify-end gap-6">
+          <p className="text-xs sm:text-sm opacity-60 max-w-[34ch] leading-relaxed text-white">
+            Curated client solutions engineered for high performance, smooth interactivity, and conversion.
+          </p>
 
-          <div className="relative w-full h-full flex items-center justify-center lg:justify-start z-20">
-            {PROJECTS.map((project, index) => {
-              const distance = index - currentIndex;
-              const wrappedDistance = wrap(
-                -(PROJECTS.length / 2),
-                PROJECTS.length / 2,
-                distance,
-              );
-              const isActive = index === currentIndex;
-              const Icon = project.icon;
-
-              return (
-                <motion.div
-                  key={project.id}
-                  style={{ height: ITEM_HEIGHT, width: "100%" }}
-                  animate={{
-                    y: wrappedDistance * ITEM_HEIGHT,
-                    opacity: 1 - Math.abs(wrappedDistance) * 0.4,
-                    scale: isActive ? 1 : 0.9,
-                  }}
-                  transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1 }}
-                  className="absolute flex items-center justify-start lg:justify-start"
-                >
-                  <button
-                    onClick={() => handleChipClick(index)}
-                    onMouseEnter={() => setIsPaused(true)}
-                    onMouseLeave={() => setIsPaused(false)}
-                    className={cn(
-                      "relative flex items-center gap-6 px-4 py-3 transition-all duration-500 text-left w-full max-w-[400px] group",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "flex items-center justify-center transition-all duration-500 rounded-full w-12 h-12 shrink-0",
-                        isActive ? "bg-[var(--accent)] text-white shadow-[0_0_20px_var(--accent)]" : "bg-white/5 text-white/40 group-hover:bg-white/10 group-hover:text-white",
-                      )}
-                    >
-                      <Icon size={isActive ? 20 : 18} strokeWidth={2} />
-                    </div>
-                    <span 
-                      className={cn(
-                        "font-medium text-lg md:text-xl tracking-tight uppercase transition-colors duration-500",
-                        isActive ? "text-white" : "text-white/40 group-hover:text-white"
-                      )}
-                    >
-                      {project.label}
-                    </span>
-                  </button>
-                </motion.div>
-              );
-            })}
+          {/* Minimal chevron arrows */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handlePrev}
+              disabled={activeIndex === 0}
+              aria-label="Previous project card"
+              className={cn(
+                "w-10 h-10 rounded-full border border-white/15 flex items-center justify-center transition-all duration-200 select-none",
+                activeIndex === 0
+                  ? "opacity-20 cursor-not-allowed text-white/30"
+                  : "text-white/80 hover:text-white hover:border-white/40 hover:bg-white/5 active:scale-95 cursor-pointer"
+              )}
+            >
+              <ChevronLeft size={20} className="stroke-[2.5]" />
+            </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={activeIndex === PROJECTS.length - 1}
+              aria-label="Next project card"
+              className={cn(
+                "w-10 h-10 rounded-full border border-white/15 flex items-center justify-center transition-all duration-200 select-none",
+                activeIndex === PROJECTS.length - 1
+                  ? "opacity-20 cursor-not-allowed text-white/30"
+                  : "text-white/80 hover:text-white hover:border-white/40 hover:bg-white/5 active:scale-95 cursor-pointer"
+              )}
+            >
+              <ChevronRight size={20} className="stroke-[2.5]" />
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Right — image card carousel */}
-        <div className="flex-1 min-h-[280px] md:min-h-[460px] lg:h-full relative flex items-center justify-center py-4 md:py-12 lg:py-0 px-4 md:px-12 lg:px-10 overflow-visible">
-          <div className="relative w-[85vw] md:w-full max-w-[620px] aspect-video flex items-center justify-center">
-            {PROJECTS.map((project, index) => {
-              const status = getCardStatus(index);
-              const isActive = status === "active";
-              const isPrev = status === "prev";
-              const isNext = status === "next";
+      {/* Project Selector Pills */}
+      <div className="flex items-center gap-2 md:gap-3 overflow-x-auto scrollbar-none pb-3 mb-6 md:mb-8 select-none">
+        {PROJECTS.map((project, index) => {
+          const Icon = project.icon;
+          const isActive = index === activeIndex;
 
-              return (
-                <motion.div
-                  key={project.id}
-                  initial={false}
-                  animate={{
-                    x: isActive ? 0 : isPrev ? -40 : isNext ? 40 : 0,
-                    y: isActive ? 0 : isPrev ? 20 : isNext ? 20 : 0,
-                    scale: isActive ? 1 : isPrev || isNext ? 0.9 : 0.8,
-                    opacity: isActive ? 1 : isPrev || isNext ? 0.3 : 0,
-                    rotate: isPrev ? -4 : isNext ? 4 : 0,
-                    zIndex: isActive ? 20 : isPrev || isNext ? 10 : 0,
-                    pointerEvents: isActive ? "auto" : "none",
-                  }}
-                  drag={isActive ? "x" : false}
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.2}
-                  onDragEnd={(e, info) => {
-                    if (info.offset.x < -40) {
-                      setStep((s) => s + 1);
-                    } else if (info.offset.x > 40) {
-                      setStep((s) => s - 1);
-                    }
-                  }}
-                  onPointerDown={() => isActive && setIsPaused(true)}
-                  onPointerUp={() => isActive && setIsPaused(false)}
-                  onPointerCancel={() => isActive && setIsPaused(false)}
-                  className="absolute inset-0 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl origin-bottom touch-pan-y"
-                >
-                  <img
-                    src={project.image}
-                    alt={project.label}
-                    className={cn(
-                      "w-full h-full object-cover transition-all duration-700",
-                      isActive ? "scale-100 blur-0 grayscale-0" : "scale-110 blur-[4px] grayscale brightness-50",
-                    )}
-                  />
+          return (
+            <button
+              key={project.id}
+              type="button"
+              onClick={() => scrollToIndex(index)}
+              className={cn(
+                "flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 shrink-0 border select-none",
+                isActive
+                  ? "bg-[var(--accent)] text-white border-[var(--accent)] shadow-[0_0_18px_rgba(253,82,0,0.4)]"
+                  : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10 hover:text-white"
+              )}
+            >
+              <Icon size={14} className="stroke-[2]" />
+              <span>{project.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="absolute inset-0 bg-gradient-to-t from-[#09090b]/80 via-[#09090b]/10 to-transparent flex flex-col justify-end p-4 sm:p-5 md:p-6"
+      {/* Fluid Horizontal Track with Start Boundary Rubber-Banding */}
+      <div
+        ref={containerRef}
+        className="w-full overflow-hidden cursor-grab active:cursor-grabbing select-none relative"
+      >
+        <motion.div
+          ref={trackRef}
+          style={{ x }}
+          drag="x"
+          dragConstraints={{ left: -maxScroll, right: 0 }}
+          dragElastic={{ left: 0, right: 0.2 }}
+          dragTransition={{
+            power: 0.2,
+            timeConstant: 250,
+            bounceStiffness: 300,
+            bounceDamping: 30,
+          }}
+          onDragStart={() => {
+            isDraggingRef.current = true;
+          }}
+          onDragEnd={() => {
+            // Short timeout so accidental link clicks on mouse release are prevented
+            setTimeout(() => {
+              isDraggingRef.current = false;
+            }, 50);
+          }}
+          className="flex items-center gap-5 sm:gap-6 md:gap-8 w-max will-change-transform py-2"
+        >
+          {PROJECTS.map((project, index) => {
+            const isActive = index === activeIndex;
+
+            return (
+              <div
+                key={project.id}
+                className={cn(
+                  "relative shrink-0 w-[84vw] sm:w-[480px] md:w-[580px] lg:w-[640px] aspect-[16/10] rounded-2xl md:rounded-3xl overflow-hidden border transition-all duration-500 shadow-2xl bg-[#161616] group select-none",
+                  isActive
+                    ? "border-white/25 ring-1 ring-white/10"
+                    : "border-white/10 opacity-75 hover:opacity-100"
+                )}
+              >
+                {/* Image */}
+                <img
+                  src={project.image}
+                  alt={project.label}
+                  draggable={false}
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 pointer-events-none select-none"
+                />
+
+                {/* Bottom Card Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/95 via-[#09090b]/40 to-transparent flex flex-col justify-end p-4 sm:p-5 md:p-6 pointer-events-none">
+                  <div className="flex flex-col gap-1.5 mb-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="bg-white/10 backdrop-blur-md text-white px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] border border-white/15 w-fit truncate">
+                        {project.tag}
+                      </div>
+
+                      <a
+                        href={project.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          if (isDraggingRef.current) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className="pointer-events-auto inline-flex items-center gap-1.5 sm:gap-2 bg-[var(--accent)] text-white font-bold text-[9px] sm:text-[10px] uppercase tracking-widest px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full hover:brightness-110 active:scale-95 transition-all duration-200 shadow-lg shadow-[var(--accent)]/25 group/btn"
                       >
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
-                          className="flex items-center justify-between gap-4 w-full"
-                        >
-                          <div className="bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] w-fit border border-white/20 truncate">
-                            {project.tag}
-                          </div>
+                        <Globe size={12} />
+                        <span>View Project</span>
+                        <ExternalLink
+                          size={12}
+                          className="opacity-70 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"
+                        />
+                      </a>
+                    </div>
 
-                          {/* Click me button */}
-                          <a
-                            href={project.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex shrink-0 items-center gap-2 bg-[var(--accent)] text-white font-bold text-[9px] md:text-[10px] uppercase tracking-widest px-4 py-2 rounded-full hover:brightness-110 active:scale-95 transition-all duration-200 group"
-                          >
-                            <Globe size={12} />
-                            View Project
-                            <ExternalLink
-                              size={12}
-                              className="opacity-70 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"
-                            />
-                          </a>
-                        </motion.div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
+                    <h4 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-tight text-white mt-1">
+                      {project.label}
+                    </h4>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-white/60 line-clamp-2 max-w-[48ch] leading-relaxed">
+                    {project.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </motion.div>
       </div>
 
-      {/* SEO & Backlinks: Project Directory with relevant surrounding context */}
-      <div className="mt-16 md:mt-24 px-4 md:px-8 border-t border-white/10 pt-10">
-        <h3 className="text-white/30 text-xs font-bold uppercase tracking-[0.2em] mb-8">
+      {/* SEO & Backlinks: Project Directory & Case Studies */}
+      <div className="mt-14 md:mt-20 border-t border-white/10 pt-8">
+        <h4 className="text-white/30 text-xs font-bold uppercase tracking-[0.2em] mb-6">
           Project Directory & Case Studies
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
           {PROJECTS.map((project) => (
-            <div key={project.id} className="flex flex-col gap-3">
-              <h4 className="text-white/80 font-medium text-lg flex items-center gap-2">
+            <div key={project.id} className="flex flex-col gap-2.5">
+              <h5 className="text-white/80 font-medium text-base md:text-lg flex items-center gap-2">
                 <project.icon className="w-4 h-4 text-[var(--accent)]" />
                 {project.label}
-              </h4>
-              <p className="text-sm text-white/50 leading-relaxed">
-                As part of our <strong>{project.tag}</strong> portfolio, we developed the <a href={project.href} target="_blank" rel="noopener noreferrer" className="text-white hover:text-[var(--accent)] underline decoration-white/30 hover:decoration-[var(--accent)] underline-offset-4 transition-all font-medium">{project.label}</a> digital experience. {project.description} This project highlights our expertise in delivering scalable, high-performance web solutions tailored to client needs.
+              </h5>
+              <p className="text-xs md:text-sm text-white/50 leading-relaxed">
+                As part of our <strong>{project.tag}</strong> portfolio, we developed the{" "}
+                <a
+                  href={project.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white hover:text-[var(--accent)] underline decoration-white/30 hover:decoration-[var(--accent)] underline-offset-4 transition-all font-medium"
+                >
+                  {project.label}
+                </a>{" "}
+                digital experience. {project.description} This project highlights our expertise in delivering scalable, high-performance web solutions tailored to client needs.
               </p>
             </div>
           ))}

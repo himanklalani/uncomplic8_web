@@ -9,6 +9,7 @@ import {
   AnimatePresence,
 } from "motion/react"
 import { cn } from "@/lib/utils"
+import { Check, RotateCcw } from "lucide-react"
 
 const STEPS = [
   {
@@ -16,7 +17,7 @@ const STEPS = [
     step: "01",
     title: "Discovery",
     description:
-      "We dive deep into your brand, understanding your goals, audience, and the core problems we need to solve together.",
+      "We discuss your product, target audience, and the practical features you need built.",
     from: "#7c3aed",
     to: "#4f46e5",
   },
@@ -25,7 +26,7 @@ const STEPS = [
     step: "02",
     title: "Strategy",
     description:
-      "Mapping out the technical architecture, design system, and timeline to ensure a flawless execution from day one.",
+      "We outline the technical plan, file structure, and timeline before writing code.",
     from: "#0891b2",
     to: "#0284c7",
   },
@@ -34,7 +35,7 @@ const STEPS = [
     step: "03",
     title: "Design",
     description:
-      "Crafting beautiful, high-performance UI/UX that captures your brand's unique aesthetic and engages your users.",
+      "We build responsive layouts tailored to your brand, focused on fast reading and easy navigation.",
     from: "#059669",
     to: "#0d9488",
   },
@@ -43,7 +44,7 @@ const STEPS = [
     step: "04",
     title: "Build",
     description:
-      "Writing clean, scalable code with cutting-edge frameworks like Next.js, Framer Motion, and GSAP.",
+      "We write native TypeScript and React components that run fast without extra bloat.",
     from: "#ea580c",
     to: "#d97706",
   },
@@ -52,7 +53,7 @@ const STEPS = [
     step: "05",
     title: "Launch",
     description:
-      "Rigorous testing, SEO optimization, and a seamless launch to ensure your project shines in the real world.",
+      "We test on real phones, verify search tags, and deploy the code directly to your hosting.",
     from: "#e11d48",
     to: "#db2777",
   },
@@ -210,22 +211,23 @@ export function MobileProcessStack({ className }: { className?: string }) {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.1 }}
-                className="w-20 h-20 rounded-full flex items-center justify-center text-4xl"
+                className="w-20 h-20 rounded-full flex items-center justify-center"
                 style={{ background: "linear-gradient(135deg, #ea580c, #d97706)" }}
               >
-                ✓
+                <Check className="w-10 h-10 text-white stroke-[2.5]" />
               </motion.div>
               <div className="text-center space-y-2 px-8">
                 <h4 className="text-2xl font-bold">Ready to Start?</h4>
                 <p className="text-sm text-muted-foreground">
-                  Every great project begins with a conversation.
+                  Send us a message on WhatsApp or email to talk about your project.
                 </p>
               </div>
               <button
                 onClick={() => setDismissed(0)}
-                className="text-xs text-muted-foreground uppercase tracking-widest border border-border rounded-full px-4 py-2 hover:bg-accent transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground uppercase tracking-widest border border-border rounded-full px-4 py-2 hover:bg-accent transition-colors"
               >
-                Replay ↺
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Replay</span>
               </button>
             </motion.div>
           ) : (
