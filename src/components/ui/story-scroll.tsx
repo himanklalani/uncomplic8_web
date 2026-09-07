@@ -114,23 +114,46 @@ export const FlowArt: React.FC<FlowArtProps> = ({
         }
       });
 
-      // Master Critically Damped Snap (settles smoothly and waits firmly at each card level)
-      if (pinTriggers.length > 0) {
-        const detentCount = sections.length;
+      // Create trackers for the "top top" alignment of each section (where the title is)
+      const topTriggers: ScrollTrigger[] = [];
+      sections.forEach((section) => {
+        const topTrigger = ScrollTrigger.create({
+          trigger: section,
+          start: 'top top',
+        });
+        topTriggers.push(topTrigger);
+        triggers.push(topTrigger);
+      });
 
+      // Master Critically Damped Snap (snaps to the title of each card)
+      if (topTriggers.length > 0) {
         const masterSnap = ScrollTrigger.create({
-          start: () => pinTriggers[0]?.start ?? 0,
-          end: () => pinTriggers[pinTriggers.length - 1]?.end ?? 0,
+          start: 0,
+          end: () => ScrollTrigger.maxScroll(window),
           snap: {
             snapTo: (progress) => {
-              const step = 1 / (detentCount - 1);
-              const index = Math.floor(progress / step);
-              const fraction = (progress - index * step) / step;
-              // Require at least 65% scroll commitment to advance to the next card
-              // Otherwise firmly hold and snap back to current level so it waits rather than elastically pulling ahead
-              const targetIndex = fraction > 0.65 ? index + 1 : index;
-              const clamped = Math.max(0, Math.min(detentCount - 1, targetIndex));
-              return clamped * step;
+              const max = ScrollTrigger.maxScroll(window);
+              const currentScroll = progress * max;
+              const starts = topTriggers.map((t) => t.start);
+              
+              let closestStart = starts[0];
+              let minDiff = Math.abs(currentScroll - closestStart);
+              
+              for (let i = 1; i < starts.length; i++) {
+                const diff = Math.abs(currentScroll - starts[i]);
+                if (diff < minDiff) {
+                  minDiff = diff;
+                  closestStart = starts[i];
+                }
+              }
+              
+              // Pull to the title if the user stops scrolling reasonably close to it.
+              // Leaves very tall cards freely scrollable in their middle.
+              if (minDiff < window.innerHeight * 0.75) {
+                return closestStart / max;
+              }
+              
+              return progress;
             },
             inertia: false, // Prevents projecting momentum forward past the resting point
             directional: false, // Disables forward momentum bias
