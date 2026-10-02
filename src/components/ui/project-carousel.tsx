@@ -124,6 +124,7 @@ const PROJECTS = [
 interface SlotStyle {
   left: string;
   scale: number;
+  rotateY: number;
   zIndex: number;
   opacity: number;
   brightness: number;
@@ -135,6 +136,7 @@ const getSlotStyle = (diff: number, isMobile: boolean): SlotStyle => {
     return {
       left: "50%",
       scale: 1,
+      rotateY: 0,
       zIndex: 40,
       opacity: 1,
       brightness: 1,
@@ -143,61 +145,68 @@ const getSlotStyle = (diff: number, isMobile: boolean): SlotStyle => {
   }
 
   if (isMobile) {
+    // Mobile: cards at 72vw with prominent 3D peek and inward angle
     if (diff === 1) {
       return {
-        left: "64%",
-        scale: 0.88,
+        left: "74%",
+        scale: 0.85,
+        rotateY: -8,
         zIndex: 30,
-        opacity: 0.82,
-        brightness: 0.72,
+        opacity: 0.85,
+        brightness: 0.65,
         pointerEvents: "auto",
       };
     }
     if (diff === -1) {
       return {
-        left: "36%",
-        scale: 0.88,
+        left: "26%",
+        scale: 0.85,
+        rotateY: 8,
         zIndex: 30,
-        opacity: 0.82,
-        brightness: 0.72,
+        opacity: 0.85,
+        brightness: 0.65,
         pointerEvents: "auto",
       };
     }
     if (diff === 2) {
       return {
-        left: "75%",
-        scale: 0.76,
+        left: "88%",
+        scale: 0.72,
+        rotateY: -14,
         zIndex: 20,
-        opacity: 0.45,
-        brightness: 0.5,
+        opacity: 0.4,
+        brightness: 0.45,
         pointerEvents: "auto",
       };
     }
     if (diff === -2) {
       return {
-        left: "25%",
-        scale: 0.76,
+        left: "12%",
+        scale: 0.72,
+        rotateY: 14,
         zIndex: 20,
-        opacity: 0.45,
-        brightness: 0.5,
+        opacity: 0.4,
+        brightness: 0.45,
         pointerEvents: "auto",
       };
     }
     return {
       left: "50%",
       scale: 0.6,
+      rotateY: 0,
       zIndex: 5,
       opacity: 0,
-      brightness: 0.3,
+      brightness: 0.2,
       pointerEvents: "none",
     };
   }
 
-  // Desktop Framer-exact staggered geometry
+  // Desktop Framer-exact staggered 3D geometry
   if (diff === 1) {
     return {
       left: "58.5%",
       scale: 0.9,
+      rotateY: -5,
       zIndex: 30,
       opacity: 0.85,
       brightness: 0.75,
@@ -208,6 +217,7 @@ const getSlotStyle = (diff: number, isMobile: boolean): SlotStyle => {
     return {
       left: "41.5%",
       scale: 0.9,
+      rotateY: 5,
       zIndex: 30,
       opacity: 0.85,
       brightness: 0.75,
@@ -218,6 +228,7 @@ const getSlotStyle = (diff: number, isMobile: boolean): SlotStyle => {
     return {
       left: "66%",
       scale: 0.8,
+      rotateY: -10,
       zIndex: 20,
       opacity: 0.55,
       brightness: 0.55,
@@ -228,6 +239,7 @@ const getSlotStyle = (diff: number, isMobile: boolean): SlotStyle => {
     return {
       left: "34%",
       scale: 0.8,
+      rotateY: 10,
       zIndex: 20,
       opacity: 0.55,
       brightness: 0.55,
@@ -238,6 +250,7 @@ const getSlotStyle = (diff: number, isMobile: boolean): SlotStyle => {
     return {
       left: "72%",
       scale: 0.7,
+      rotateY: -14,
       zIndex: 10,
       opacity: 0.2,
       brightness: 0.4,
@@ -248,6 +261,7 @@ const getSlotStyle = (diff: number, isMobile: boolean): SlotStyle => {
     return {
       left: "28%",
       scale: 0.7,
+      rotateY: 14,
       zIndex: 10,
       opacity: 0.2,
       brightness: 0.4,
@@ -257,6 +271,7 @@ const getSlotStyle = (diff: number, isMobile: boolean): SlotStyle => {
   return {
     left: "50%",
     scale: 0.6,
+    rotateY: 0,
     zIndex: 5,
     opacity: 0,
     brightness: 0.3,
@@ -349,9 +364,9 @@ export function ProjectCarousel() {
   };
 
   return (
-    <div className="w-full mt-6 md:mt-10 mb-8 md:mb-16">
+    <div className="w-full mt-2 sm:mt-6 md:mt-10 mb-6 md:mb-16">
       {/* Section Header */}
-      <div className="mb-6 md:mb-8">
+      <div className="mb-2 sm:mb-6 md:mb-8">
         <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60 mb-2 text-white">
           Our Projects
         </p>
@@ -362,7 +377,8 @@ export function ProjectCarousel() {
 
       {/* Infinite Gallery Stage */}
       <div
-        className="relative w-full h-[360px] sm:h-[430px] md:h-[500px] lg:h-[540px] flex items-center justify-center overflow-hidden my-4 sm:my-6 select-none"
+        className="relative w-full h-[225px] sm:h-[350px] md:h-[480px] lg:h-[520px] flex items-center justify-center overflow-hidden my-1 sm:my-4 select-none"
+        style={{ perspective: "1000px" }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
@@ -378,7 +394,7 @@ export function ProjectCarousel() {
           role="button"
           aria-label="Previous project"
           onClick={handlePrev}
-          className="absolute left-0 top-0 w-[20%] md:w-[22%] h-full z-35 cursor-w-resize group/left flex items-center justify-start pl-3 sm:pl-6 pointer-events-auto select-none"
+          className="absolute left-0 top-0 w-[16%] sm:w-[22%] h-full z-35 cursor-w-resize group/left flex items-center justify-start pl-2 sm:pl-6 pointer-events-auto select-none"
         >
           <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center text-white/60 group-hover/left:text-white group-hover/left:border-white/40 group-hover/left:bg-black/80 transition-all opacity-0 group-hover/left:opacity-100 sm:group-hover/left:scale-105 shadow-xl">
             <ChevronLeft size={20} className="stroke-[2.5]" />
@@ -390,7 +406,7 @@ export function ProjectCarousel() {
           role="button"
           aria-label="Next project"
           onClick={handleNext}
-          className="absolute right-0 top-0 w-[20%] md:w-[22%] h-full z-35 cursor-e-resize group/right flex items-center justify-end pr-3 sm:pr-6 pointer-events-auto select-none"
+          className="absolute right-0 top-0 w-[16%] sm:w-[22%] h-full z-35 cursor-e-resize group/right flex items-center justify-end pr-2 sm:pr-6 pointer-events-auto select-none"
         >
           <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center text-white/60 group-hover/right:text-white group-hover/right:border-white/40 group-hover/right:bg-black/80 transition-all opacity-0 group-hover/right:opacity-100 sm:group-hover/right:scale-105 shadow-xl">
             <ChevronRight size={20} className="stroke-[2.5]" />
@@ -413,6 +429,7 @@ export function ProjectCarousel() {
               animate={{
                 left: style.left,
                 scale: style.scale,
+                rotateY: style.rotateY,
                 opacity: style.opacity,
                 filter: `brightness(${style.brightness})`,
               }}
@@ -435,9 +452,9 @@ export function ProjectCarousel() {
                 }
               }}
               className={cn(
-                "shrink-0 w-[86vw] sm:w-[500px] md:w-[600px] lg:w-[640px] max-w-[640px] aspect-[16/10] rounded-2xl md:rounded-3xl overflow-hidden border transition-[box-shadow,border-color] duration-500 bg-[#121214] select-none group",
+                "shrink-0 w-[72vw] max-w-[285px] sm:w-[500px] md:w-[600px] lg:w-[640px] sm:max-w-[640px] aspect-[16/11] sm:aspect-[16/10] rounded-2xl md:rounded-3xl overflow-hidden border transition-[box-shadow,border-color] duration-500 bg-[#121214] select-none group",
                 isActive
-                  ? "border-white/30 ring-1 ring-white/20 shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_40px_rgba(253,82,0,0.2)] cursor-default"
+                  ? "border-white/30 ring-1 ring-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_35px_rgba(253,82,0,0.22)] cursor-default"
                   : "border-white/10 shadow-2xl hover:border-white/25 cursor-pointer"
               )}
             >
@@ -453,11 +470,11 @@ export function ProjectCarousel() {
               />
 
               {/* Gradient Vignette & Card Content Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent flex flex-col justify-end p-4 sm:p-5 md:p-6 select-none">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent flex flex-col justify-end p-3 sm:p-5 md:p-6 select-none">
                 <div className="flex flex-col gap-1.5 sm:gap-2 mb-1 sm:mb-2">
                   <div className="flex items-center justify-between gap-3">
                     {/* Category Tag */}
-                    <div className="bg-white/10 backdrop-blur-md text-white px-2.5 sm:px-3 py-1 rounded-full text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em] border border-white/15 w-fit truncate">
+                    <div className="bg-white/10 backdrop-blur-md text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em] border border-white/15 w-fit truncate">
                       {project.tag}
                     </div>
 
@@ -468,13 +485,12 @@ export function ProjectCarousel() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="pointer-events-auto inline-flex items-center gap-1.5 sm:gap-2 bg-[var(--accent)] text-white font-bold text-[8px] sm:text-[10px] uppercase tracking-widest px-3 sm:px-4 py-1.5 sm:py-2 rounded-full hover:brightness-110 active:scale-95 transition-all duration-200 shadow-lg shadow-[var(--accent)]/30 group/btn"
+                        className="pointer-events-auto inline-flex items-center gap-1 sm:gap-2 bg-[var(--accent)] text-white font-bold text-[8px] sm:text-[10px] uppercase tracking-widest px-2.5 sm:px-4 py-1 sm:py-2 rounded-full hover:brightness-110 active:scale-95 transition-all duration-200 shadow-lg shadow-[var(--accent)]/30 group/btn"
                       >
-                        <Globe size={12} />
+                        <Globe className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         <span>View Project</span>
                         <ExternalLink
-                          size={12}
-                          className="opacity-70 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"
+                          className="w-2.5 h-2.5 sm:w-3 sm:h-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"
                         />
                       </a>
                     ) : (
@@ -485,7 +501,7 @@ export function ProjectCarousel() {
                   </div>
 
                   {/* Project Title */}
-                  <h4 className="text-base sm:text-xl md:text-2xl font-bold uppercase tracking-tight text-white mt-0.5">
+                  <h4 className="text-sm sm:text-xl md:text-2xl font-bold uppercase tracking-tight text-white mt-0.5">
                     {project.label}
                   </h4>
                 </div>
@@ -493,7 +509,7 @@ export function ProjectCarousel() {
                 {/* Description */}
                 <p
                   className={cn(
-                    "text-[11px] sm:text-xs md:text-sm text-white/70 leading-relaxed transition-opacity duration-300 max-w-[48ch]",
+                    "text-[10px] sm:text-xs md:text-sm text-white/70 leading-snug transition-opacity duration-300 max-w-[48ch]",
                     isActive ? "line-clamp-2 opacity-100" : "line-clamp-1 opacity-0 sm:opacity-50"
                   )}
                 >
@@ -506,7 +522,7 @@ export function ProjectCarousel() {
       </div>
 
       {/* SEO & Backlinks: Project Directory & Case Studies */}
-      <div className="mt-14 md:mt-20 border-t border-white/10 pt-8">
+      <div className="mt-6 sm:mt-14 md:mt-20 border-t border-white/10 pt-6 sm:pt-8">
         <h4 className="text-white/30 text-xs font-bold uppercase tracking-[0.2em] mb-6">
           Project Directory & Case Studies
         </h4>
