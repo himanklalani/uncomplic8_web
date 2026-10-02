@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion, useMotionValue, useMotionValueEvent, animate } from "motion/react";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import {
   Globe,
@@ -121,223 +121,354 @@ const PROJECTS = [
   },
 ];
 
-export function ProjectCarousel() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const isDraggingRef = useRef(false);
+interface SlotStyle {
+  left: string;
+  scale: number;
+  zIndex: number;
+  opacity: number;
+  brightness: number;
+  pointerEvents: "auto" | "none";
+}
 
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [maxScroll, setMaxScroll] = useState(0);
-  const [stepSize, setStepSize] = useState(620);
+const getSlotStyle = (diff: number, isMobile: boolean): SlotStyle => {
+  if (diff === 0) {
+    return {
+      left: "50%",
+      scale: 1,
+      zIndex: 40,
+      opacity: 1,
+      brightness: 1,
+      pointerEvents: "auto",
+    };
+  }
 
-  const x = useMotionValue(0);
-
-  // Recalculate dimensions on resize
-  const updateMeasurements = useCallback(() => {
-    if (!containerRef.current || !trackRef.current) return;
-    const containerWidth = containerRef.current.clientWidth;
-    const trackWidth = trackRef.current.scrollWidth;
-
-    const firstCard = trackRef.current.children[0] as HTMLElement | undefined;
-    const secondCard = trackRef.current.children[1] as HTMLElement | undefined;
-
-    let computedStep = 620;
-    if (firstCard && secondCard) {
-      computedStep = secondCard.offsetLeft - firstCard.offsetLeft;
-    } else if (firstCard) {
-      computedStep = firstCard.offsetWidth + 24;
+  if (isMobile) {
+    if (diff === 1) {
+      return {
+        left: "64%",
+        scale: 0.88,
+        zIndex: 30,
+        opacity: 0.82,
+        brightness: 0.72,
+        pointerEvents: "auto",
+      };
     }
-    setStepSize(computedStep);
+    if (diff === -1) {
+      return {
+        left: "36%",
+        scale: 0.88,
+        zIndex: 30,
+        opacity: 0.82,
+        brightness: 0.72,
+        pointerEvents: "auto",
+      };
+    }
+    if (diff === 2) {
+      return {
+        left: "75%",
+        scale: 0.76,
+        zIndex: 20,
+        opacity: 0.45,
+        brightness: 0.5,
+        pointerEvents: "auto",
+      };
+    }
+    if (diff === -2) {
+      return {
+        left: "25%",
+        scale: 0.76,
+        zIndex: 20,
+        opacity: 0.45,
+        brightness: 0.5,
+        pointerEvents: "auto",
+      };
+    }
+    return {
+      left: "50%",
+      scale: 0.6,
+      zIndex: 5,
+      opacity: 0,
+      brightness: 0.3,
+      pointerEvents: "none",
+    };
+  }
 
-    const calculatedMax = Math.max(0, trackWidth - containerWidth);
-    setMaxScroll(calculatedMax);
+  // Desktop Framer-exact staggered geometry
+  if (diff === 1) {
+    return {
+      left: "58.5%",
+      scale: 0.9,
+      zIndex: 30,
+      opacity: 0.85,
+      brightness: 0.75,
+      pointerEvents: "auto",
+    };
+  }
+  if (diff === -1) {
+    return {
+      left: "41.5%",
+      scale: 0.9,
+      zIndex: 30,
+      opacity: 0.85,
+      brightness: 0.75,
+      pointerEvents: "auto",
+    };
+  }
+  if (diff === 2) {
+    return {
+      left: "66%",
+      scale: 0.8,
+      zIndex: 20,
+      opacity: 0.55,
+      brightness: 0.55,
+      pointerEvents: "auto",
+    };
+  }
+  if (diff === -2) {
+    return {
+      left: "34%",
+      scale: 0.8,
+      zIndex: 20,
+      opacity: 0.55,
+      brightness: 0.55,
+      pointerEvents: "auto",
+    };
+  }
+  if (diff === 3) {
+    return {
+      left: "72%",
+      scale: 0.7,
+      zIndex: 10,
+      opacity: 0.2,
+      brightness: 0.4,
+      pointerEvents: "none",
+    };
+  }
+  if (diff === -3) {
+    return {
+      left: "28%",
+      scale: 0.7,
+      zIndex: 10,
+      opacity: 0.2,
+      brightness: 0.4,
+      pointerEvents: "none",
+    };
+  }
+  return {
+    left: "50%",
+    scale: 0.6,
+    zIndex: 5,
+    opacity: 0,
+    brightness: 0.3,
+    pointerEvents: "none",
+  };
+};
+
+export function ProjectCarousel() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const mouseStartX = useRef<number | null>(null);
+  const isMouseDown = useRef(false);
+
+  // Responsive breakpoint tracking
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  const handlePrev = useCallback(() => {
+    setActiveIndex((prev) => (prev - 1 + PROJECTS.length) % PROJECTS.length);
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setActiveIndex((prev) => (prev + 1) % PROJECTS.length);
+  }, []);
+
+  // Infinite Gallery subtle auto-play (pauses on hover or user interaction)
   useEffect(() => {
-    updateMeasurements();
-    window.addEventListener("resize", updateMeasurements);
-    const timeout = setTimeout(updateMeasurements, 250);
-    return () => {
-      window.removeEventListener("resize", updateMeasurements);
-      clearTimeout(timeout);
-    };
-  }, [updateMeasurements]);
+    if (isHovered) return;
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % PROJECTS.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [isHovered]);
 
-  // Keep activeIndex synchronized with current scroll translation
-  useMotionValueEvent(x, "change", (latest) => {
-    if (stepSize <= 0) return;
-    const index = Math.round(-latest / stepSize);
-    const clamped = Math.max(0, Math.min(PROJECTS.length - 1, index));
-    if (clamped !== activeIndex) {
-      setActiveIndex(clamped);
-    }
-  });
-
-  const scrollToIndex = useCallback(
-    (index: number) => {
-      const clampedIndex = Math.max(0, Math.min(PROJECTS.length - 1, index));
-      const target = Math.max(-maxScroll, Math.min(0, -clampedIndex * stepSize));
-      animate(x, target, {
-        type: "spring",
-        stiffness: 220,
-        damping: 28,
-      });
-    },
-    [maxScroll, stepSize, x]
-  );
-
-  const handlePrev = () => {
-    scrollToIndex(Math.max(0, activeIndex - 1));
+  // Touch handlers that preserve full vertical page scrolling
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    setIsHovered(true);
   };
 
-  const handleNext = () => {
-    scrollToIndex(Math.min(PROJECTS.length - 1, activeIndex + 1));
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setIsHovered(false);
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+
+    // Only switch slides if horizontal swipe exceeds vertical drag and exceeds threshold
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 35) {
+      if (deltaX < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
+  // Mouse drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("a, button")) return;
+    mouseStartX.current = e.clientX;
+    isMouseDown.current = true;
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!isMouseDown.current || mouseStartX.current === null) return;
+    const deltaX = e.clientX - mouseStartX.current;
+    if (Math.abs(deltaX) > 45) {
+      if (deltaX < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+    isMouseDown.current = false;
+    mouseStartX.current = null;
   };
 
   return (
     <div className="w-full mt-6 md:mt-10 mb-8 md:mb-16">
-      {/* Section Header & Minimal Arrow Affordance */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 md:mb-8">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60 mb-2 text-white">
-            Our Projects
-          </p>
-          <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-tight leading-none text-white">
-            Selected Works
-          </h3>
-        </div>
+      {/* Section Header */}
+      <div className="mb-6 md:mb-8">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60 mb-2 text-white">
+          Our Projects
+        </p>
+        <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-tight leading-none text-white">
+          Selected Works
+        </h3>
+      </div>
 
-        <div className="flex items-center justify-between md:justify-end gap-6">
-          <p className="text-xs sm:text-sm opacity-60 max-w-[34ch] leading-relaxed text-white">
-            Curated client solutions engineered for high performance, smooth interactivity, and conversion.
-          </p>
-
-          {/* Minimal chevron arrows */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={activeIndex === 0}
-              aria-label="Previous project card"
-              className={cn(
-                "w-10 h-10 rounded-full border border-white/15 flex items-center justify-center transition-all duration-200 select-none",
-                activeIndex === 0
-                  ? "opacity-20 cursor-not-allowed text-white/30"
-                  : "text-white/80 hover:text-white hover:border-white/40 hover:bg-white/5 active:scale-95 cursor-pointer"
-              )}
-            >
-              <ChevronLeft size={20} className="stroke-[2.5]" />
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={activeIndex === PROJECTS.length - 1}
-              aria-label="Next project card"
-              className={cn(
-                "w-10 h-10 rounded-full border border-white/15 flex items-center justify-center transition-all duration-200 select-none",
-                activeIndex === PROJECTS.length - 1
-                  ? "opacity-20 cursor-not-allowed text-white/30"
-                  : "text-white/80 hover:text-white hover:border-white/40 hover:bg-white/5 active:scale-95 cursor-pointer"
-              )}
-            >
-              <ChevronRight size={20} className="stroke-[2.5]" />
-            </button>
+      {/* Infinite Gallery Stage */}
+      <div
+        className="relative w-full h-[360px] sm:h-[430px] md:h-[500px] lg:h-[540px] flex items-center justify-center overflow-hidden my-4 sm:my-6 select-none"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          isMouseDown.current = false;
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+      >
+        {/* Left Click Zone (Prev) with hover indicator */}
+        <div
+          role="button"
+          aria-label="Previous project"
+          onClick={handlePrev}
+          className="absolute left-0 top-0 w-[20%] md:w-[22%] h-full z-35 cursor-w-resize group/left flex items-center justify-start pl-3 sm:pl-6 pointer-events-auto select-none"
+        >
+          <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center text-white/60 group-hover/left:text-white group-hover/left:border-white/40 group-hover/left:bg-black/80 transition-all opacity-0 group-hover/left:opacity-100 sm:group-hover/left:scale-105 shadow-xl">
+            <ChevronLeft size={20} className="stroke-[2.5]" />
           </div>
         </div>
-      </div>
 
-      {/* Project Selector Pills */}
-      <div className="flex items-center gap-2 md:gap-3 overflow-x-auto scrollbar-none pb-3 mb-6 md:mb-8 select-none">
+        {/* Right Click Zone (Next) with hover indicator */}
+        <div
+          role="button"
+          aria-label="Next project"
+          onClick={handleNext}
+          className="absolute right-0 top-0 w-[20%] md:w-[22%] h-full z-35 cursor-e-resize group/right flex items-center justify-end pr-3 sm:pr-6 pointer-events-auto select-none"
+        >
+          <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center text-white/60 group-hover/right:text-white group-hover/right:border-white/40 group-hover/right:bg-black/80 transition-all opacity-0 group-hover/right:opacity-100 sm:group-hover/right:scale-105 shadow-xl">
+            <ChevronRight size={20} className="stroke-[2.5]" />
+          </div>
+        </div>
+
+        {/* Layered Orbit Cards */}
         {PROJECTS.map((project, index) => {
-          const Icon = project.icon;
-          const isActive = index === activeIndex;
+          let diff = index - activeIndex;
+          const total = PROJECTS.length;
+          while (diff > total / 2) diff -= total;
+          while (diff < -total / 2) diff += total;
+
+          const isActive = diff === 0;
+          const style = getSlotStyle(diff, isMobile);
 
           return (
-            <button
+            <motion.div
               key={project.id}
-              type="button"
-              onClick={() => scrollToIndex(index)}
+              animate={{
+                left: style.left,
+                scale: style.scale,
+                opacity: style.opacity,
+                filter: `brightness(${style.brightness})`,
+              }}
+              transition={{
+                type: "spring",
+                bounce: 0.2,
+                duration: 0.45,
+              }}
+              style={{
+                position: "absolute",
+                top: "50%",
+                x: "-50%",
+                y: "-50%",
+                zIndex: style.zIndex,
+                pointerEvents: style.pointerEvents,
+              }}
+              onClick={() => {
+                if (!isActive) {
+                  setActiveIndex(index);
+                }
+              }}
               className={cn(
-                "flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 shrink-0 border select-none",
+                "shrink-0 w-[86vw] sm:w-[500px] md:w-[600px] lg:w-[640px] max-w-[640px] aspect-[16/10] rounded-2xl md:rounded-3xl overflow-hidden border transition-[box-shadow,border-color] duration-500 bg-[#121214] select-none group",
                 isActive
-                  ? "bg-[var(--accent)] text-white border-[var(--accent)] shadow-[0_0_18px_rgba(253,82,0,0.4)]"
-                  : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10 hover:text-white"
+                  ? "border-white/30 ring-1 ring-white/20 shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_40px_rgba(253,82,0,0.2)] cursor-default"
+                  : "border-white/10 shadow-2xl hover:border-white/25 cursor-pointer"
               )}
             >
-              <Icon size={14} className="stroke-[2]" />
-              <span>{project.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Fluid Horizontal Track with Start Boundary Rubber-Banding */}
-      <div
-        ref={containerRef}
-        className="w-full overflow-hidden cursor-grab active:cursor-grabbing select-none relative"
-      >
-        <motion.div
-          ref={trackRef}
-          style={{ x }}
-          drag="x"
-          dragConstraints={{ left: -maxScroll, right: 0 }}
-          dragElastic={{ left: 0, right: 0.2 }}
-          dragTransition={{
-            power: 0.2,
-            timeConstant: 250,
-            bounceStiffness: 300,
-            bounceDamping: 30,
-          }}
-          onDragStart={() => {
-            isDraggingRef.current = true;
-          }}
-          onDragEnd={() => {
-            // Short timeout so accidental link clicks on mouse release are prevented
-            setTimeout(() => {
-              isDraggingRef.current = false;
-            }, 50);
-          }}
-          className="flex items-center gap-5 sm:gap-6 md:gap-8 w-max will-change-transform py-2"
-        >
-          {PROJECTS.map((project, index) => {
-            const isActive = index === activeIndex;
-
-            return (
-              <div
-                key={project.id}
+              {/* Background Project Image */}
+              <img
+                src={project.image}
+                alt={project.label}
+                draggable={false}
                 className={cn(
-                  "relative shrink-0 w-[84vw] sm:w-[480px] md:w-[580px] lg:w-[640px] aspect-[16/10] rounded-2xl md:rounded-3xl overflow-hidden border transition-all duration-500 shadow-2xl bg-[#161616] group select-none",
-                  isActive
-                    ? "border-white/25 ring-1 ring-white/10"
-                    : "border-white/10 opacity-75 hover:opacity-100"
+                  "w-full h-full object-cover select-none pointer-events-none transition-transform duration-700 ease-out",
+                  isActive && "group-hover:scale-105"
                 )}
-              >
-                {/* Image */}
-                <img
-                  src={project.image}
-                  alt={project.label}
-                  draggable={false}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 pointer-events-none select-none"
-                />
+              />
 
-                {/* Bottom Card Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/95 via-[#09090b]/40 to-transparent flex flex-col justify-end p-4 sm:p-5 md:p-6 pointer-events-none">
-                  <div className="flex flex-col gap-1.5 mb-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="bg-white/10 backdrop-blur-md text-white px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] border border-white/15 w-fit truncate">
-                        {project.tag}
-                      </div>
+              {/* Gradient Vignette & Card Content Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent flex flex-col justify-end p-4 sm:p-5 md:p-6 select-none">
+                <div className="flex flex-col gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Category Tag */}
+                    <div className="bg-white/10 backdrop-blur-md text-white px-2.5 sm:px-3 py-1 rounded-full text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em] border border-white/15 w-fit truncate">
+                      {project.tag}
+                    </div>
 
+                    {/* CTA Button: Active on front card */}
+                    {isActive ? (
                       <a
                         href={project.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => {
-                          if (isDraggingRef.current) {
-                            e.preventDefault();
-                          }
-                        }}
-                        className="pointer-events-auto inline-flex items-center gap-1.5 sm:gap-2 bg-[var(--accent)] text-white font-bold text-[9px] sm:text-[10px] uppercase tracking-widest px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full hover:brightness-110 active:scale-95 transition-all duration-200 shadow-lg shadow-[var(--accent)]/25 group/btn"
+                        onClick={(e) => e.stopPropagation()}
+                        className="pointer-events-auto inline-flex items-center gap-1.5 sm:gap-2 bg-[var(--accent)] text-white font-bold text-[8px] sm:text-[10px] uppercase tracking-widest px-3 sm:px-4 py-1.5 sm:py-2 rounded-full hover:brightness-110 active:scale-95 transition-all duration-200 shadow-lg shadow-[var(--accent)]/30 group/btn"
                       >
                         <Globe size={12} />
                         <span>View Project</span>
@@ -346,21 +477,32 @@ export function ProjectCarousel() {
                           className="opacity-70 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"
                         />
                       </a>
-                    </div>
-
-                    <h4 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-tight text-white mt-1">
-                      {project.label}
-                    </h4>
+                    ) : (
+                      <div className="opacity-0 sm:opacity-40 text-white/40 text-[9px] uppercase tracking-wider font-semibold">
+                        Click to view
+                      </div>
+                    )}
                   </div>
 
-                  <p className="text-xs sm:text-sm text-white/60 line-clamp-2 max-w-[48ch] leading-relaxed">
-                    {project.description}
-                  </p>
+                  {/* Project Title */}
+                  <h4 className="text-base sm:text-xl md:text-2xl font-bold uppercase tracking-tight text-white mt-0.5">
+                    {project.label}
+                  </h4>
                 </div>
+
+                {/* Description */}
+                <p
+                  className={cn(
+                    "text-[11px] sm:text-xs md:text-sm text-white/70 leading-relaxed transition-opacity duration-300 max-w-[48ch]",
+                    isActive ? "line-clamp-2 opacity-100" : "line-clamp-1 opacity-0 sm:opacity-50"
+                  )}
+                >
+                  {project.description}
+                </p>
               </div>
-            );
-          })}
-        </motion.div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* SEO & Backlinks: Project Directory & Case Studies */}
